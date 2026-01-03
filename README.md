@@ -71,14 +71,12 @@ Si tienes dudas razonables, decide tú y explícitalo. Preferimos ver tu criteri
 Para un desarrollador nuevo, simplemente ejecuta:
 
 ```bash
-cd backend
 ./run.sh
 ```
 
 O usando npm:
 
 ```bash
-cd backend
 npm run setup && npm run test:all
 ```
 
