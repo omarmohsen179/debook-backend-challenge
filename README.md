@@ -110,10 +110,7 @@ Este comando automáticamente:
 
 Si prefieres hacerlo paso a paso:
 
-1. **Clonar y navegar al directorio backend**:
-   ```bash
-   cd backend
-   ```
+1. **Clonar el repositorio** (si es necesario)
 
 2. **Ejecutar el script de setup**:
    ```bash
