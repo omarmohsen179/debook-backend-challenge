@@ -1,0 +1,77 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: debook-postgres
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-debook_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-debook_password}
+      POSTGRES_DB: ${DATABASE_NAME:-debook_db}
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-debook_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - debook-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: debook-app
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=${DATABASE_USER:-debook_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-debook_password}
+      - DATABASE_NAME=${DATABASE_NAME:-debook_db}
+      - PORT=3000
+      - TYPEORM_SYNCHRONIZE=true
+      - TYPEORM_LOGGING=${TYPEORM_LOGGING:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - debook-network
+    restart: unless-stopped
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: debook-test
+    environment:
+      - NODE_ENV=test
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=${DATABASE_USER:-debook_user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-debook_password}
+      - DATABASE_NAME=${DATABASE_NAME:-debook_db}
+      - TYPEORM_SYNCHRONIZE=false
+      - TYPEORM_LOGGING=false
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - debook-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    profiles:
+      - test
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  debook-network:
+    driver: bridge
